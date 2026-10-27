@@ -30,7 +30,7 @@ jobs:
           "version": "1.0.0",
           "main": "main.js",
           "scripts": {
-            "build": "electron-builder --windows"
+            "build": "electron-builder --windows --publish never"
           },
           "devDependencies": {
             "electron": "^33.0.0",
@@ -51,7 +51,7 @@ jobs:
         '@
         Set-Content -Path main.js -Value $js
         
-        npm run build
+        npx electron-builder --windows --publish never
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
