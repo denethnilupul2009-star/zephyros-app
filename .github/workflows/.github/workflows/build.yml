@@ -1,0 +1,60 @@
+name: Build Electron App
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Build and Package with PowerShell
+      shell: powershell
+      run: |
+        npm init -y
+        npm install electron --save-dev
+        npm install electron-builder --save-dev
+        
+        $json = @'
+        {
+          "name": "zephyros-study-os",
+          "version": "1.0.0",
+          "main": "main.js",
+          "scripts": {
+            "build": "electron-builder --windows"
+          },
+          "devDependencies": {
+            "electron": "^33.0.0",
+            "electron-builder": "^25.0.0"
+          }
+        }
+        '@
+        Set-Content -Path package.json -Value $json
+        
+        $js = @'
+        const { app, BrowserWindow } = require('electron');
+        function createWindow() {
+          const win = new BrowserWindow({ width: 1280, height: 800 });
+          win.loadFile('index.html');
+        }
+        app.whenReady().then(createWindow);
+        app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+        '@
+        Set-Content -Path main.js -Value $js
+        
+        npm run build
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Windows-Setup-Exe
+        path: dist/*.exe
